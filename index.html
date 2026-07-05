@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Honmono Project Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cast-iron:#2b291f; --green:#454f38; --copper:#9b6838; --mustard:#c8ab60;
+  --linen:#d4d1cb; --offwhite:#efedea; --white:#ffffff;
+  --serif:'Playfair Display', Georgia, serif;
+  --sans:'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:var(--offwhite); color:var(--cast-iron); font-family:var(--sans); font-weight:300; font-size:15px; line-height:1.55;}
+a{color:var(--green);}
+h1,h2{font-family:var(--serif); font-weight:400;}
+.label{font-family:var(--sans); font-weight:500; text-transform:uppercase; letter-spacing:.14em; font-size:11px;}
+
+/* Header */
+header{background:var(--green); color:var(--offwhite); padding:26px 28px 22px;}
+.hd-inner{max-width:1200px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:18px; justify-content:space-between;}
+.hd-left{display:flex; flex-direction:column; gap:10px;}
+.hd-left img{height:26px; width:auto; display:block;}
+.hd-title{font-family:var(--serif); font-size:30px; letter-spacing:.02em;}
+.hd-sub{color:var(--linen); font-size:12px;}
+.hd-actions{display:flex; gap:10px;}
+button{font-family:var(--sans); cursor:pointer;}
+.btn{background:transparent; border:1px solid var(--linen); color:var(--offwhite); padding:8px 16px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:500;}
+.btn:hover{background:rgba(239,237,234,.12);}
+.btn-dark{border-color:var(--green); color:var(--green);}
+.btn-dark:hover{background:rgba(69,79,56,.08);}
+
+main{max-width:1200px; margin:0 auto; padding:26px 20px 60px;}
+section{background:var(--white); border:1px solid var(--linen); margin-bottom:26px; padding:24px 26px;}
+section h2{font-size:22px; color:var(--green); margin-bottom:4px;}
+.sec-sub{color:#6f6b5e; font-size:13px; margin-bottom:18px;}
+
+/* Overview */
+.ov-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px;}
+.ov-card{border-left:3px solid var(--mustard); padding:2px 0 2px 14px;}
+.ov-card .label{color:var(--copper); margin-bottom:6px; display:block;}
+.ov-card p{font-size:14px;}
+.next-action{background:var(--green); color:var(--offwhite); padding:16px 18px; margin-top:20px; display:flex; flex-wrap:wrap; gap:8px 20px; align-items:baseline;}
+.next-action .label{color:var(--mustard);}
+.next-action strong{font-weight:500;}
+
+/* Gantt */
+.gantt{overflow-x:auto;}
+.g-row{display:grid; grid-template-columns:230px 1fr; align-items:center; min-height:34px; border-bottom:1px solid var(--offwhite);}
+.g-lab{font-size:12.5px; padding:6px 12px 6px 0; line-height:1.3;}
+.g-lab .ws{display:block; font-size:10px; color:var(--copper); text-transform:uppercase; letter-spacing:.1em;}
+.g-track{position:relative; height:100%; min-height:34px; background:repeating-linear-gradient(90deg, transparent 0, transparent calc(100%/7 - 1px), var(--offwhite) calc(100%/7 - 1px), var(--offwhite) calc(100%/7));}
+.g-bar{position:absolute; top:8px; height:18px; border-radius:2px; min-width:10px;}
+.g-done{background:var(--green);}
+.g-active{background:var(--mustard);}
+.g-upcoming{background:var(--linen); border:1px solid var(--green);}
+.g-at_risk{background:var(--copper);}
+.g-inferred{outline:2px dashed var(--copper); outline-offset:2px;}
+.g-head{display:grid; grid-template-columns:230px 1fr; border-bottom:2px solid var(--green); font-size:10px;}
+.g-scale{position:relative; height:20px;}
+.g-tick{position:absolute; top:2px; transform:translateX(-50%); color:#6f6b5e; letter-spacing:.05em;}
+.g-today{position:absolute; top:0; bottom:0; width:2px; background:var(--copper); z-index:2;}
+.g-legend{display:flex; flex-wrap:wrap; gap:16px; margin-top:14px; font-size:11px; color:#6f6b5e; align-items:center;}
+.g-legend span{display:inline-flex; align-items:center; gap:6px;}
+.sw{width:14px; height:10px; display:inline-block; border-radius:2px;}
+
+/* Tasks */
+.t-group{margin-bottom:22px;}
+.t-group h3{font-family:var(--serif); font-weight:400; font-size:17px; color:var(--cast-iron); border-bottom:1px solid var(--linen); padding-bottom:6px; margin-bottom:8px;}
+table{width:100%; border-collapse:collapse;}
+th{text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.12em; font-weight:500; color:var(--copper); padding:6px 8px; border-bottom:1px solid var(--linen);}
+td{padding:8px; font-size:13.5px; border-bottom:1px solid var(--offwhite); vertical-align:middle;}
+td a{text-decoration:none;}
+td a:hover{text-decoration:underline;}
+select,input[type=date],input[type=text],textarea{font-family:var(--sans); font-weight:300; font-size:13px; padding:5px 7px; border:1px solid var(--linen); background:var(--white); color:var(--cast-iron); max-width:100%;}
+select:focus,input:focus,textarea:focus{outline:1px solid var(--mustard);}
+.chip{display:inline-block; padding:2px 9px; border-radius:10px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:500;}
+.p-urgent{background:var(--copper); color:var(--offwhite);}
+.p-high{background:var(--mustard); color:var(--cast-iron);}
+.p-normal{background:var(--linen); color:var(--cast-iron);}
+.p-low{background:var(--offwhite); color:#6f6b5e; border:1px solid var(--linen);}
+.overdue{color:var(--copper); font-weight:500;}
+.done-row td{opacity:.5;}
+.done-row td:first-child{text-decoration:line-through;}
+.addbar{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; padding-top:14px; border-top:1px dashed var(--linen); align-items:center;}
+.addbar input[type=text]{flex:1; min-width:180px;}
+
+/* Docs */
+.doc-name a{font-weight:400; color:var(--green);}
+.tag{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:#6f6b5e;}
+
+/* Questions */
+.q-item{border-bottom:1px solid var(--offwhite); padding:10px 0; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;}
+.q-body{flex:1; min-width:250px;}
+.q-meta{font-size:11px; color:#6f6b5e; margin-top:2px;}
+.q-status{border:1px solid var(--linen); background:var(--offwhite); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; padding:4px 10px; min-width:92px;}
+.q-answered .q-status{background:var(--green); color:var(--offwhite); border-color:var(--green);}
+.q-parked .q-status{background:var(--linen);}
+.q-answer{font-size:13px; color:var(--green); margin-top:5px;}
+.q-edit{width:100%; margin-top:6px;}
+
+/* Contacts */
+.c-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;}
+.c-card{border:1px solid var(--linen); padding:14px 16px;}
+.c-card .name{font-family:var(--serif); font-size:16px;}
+.c-card .role{font-size:12px; color:var(--copper); margin-bottom:6px;}
+.c-card p{font-size:12.5px; word-break:break-word;}
+
+/* Notes */
+.n-item{border-left:3px solid var(--linen); padding:4px 0 4px 14px; margin-bottom:16px;}
+.n-item .nd{font-size:11px; color:var(--copper); text-transform:uppercase; letter-spacing:.1em;}
+.n-item h4{font-family:var(--serif); font-weight:400; font-size:16px; margin:2px 0;}
+.n-item .att{font-size:11.5px; color:#6f6b5e; margin-bottom:4px;}
+.n-item p{font-size:13.5px; white-space:pre-wrap;}
+.n-form{display:grid; gap:8px; margin-top:14px; padding-top:14px; border-top:1px dashed var(--linen);}
+.n-form .row2{display:flex; gap:8px; flex-wrap:wrap;}
+.n-form .row2 input{flex:1; min-width:140px;}
+
+.toast{position:fixed; bottom:22px; right:22px; background:var(--cast-iron); color:var(--offwhite); padding:12px 18px; font-size:13px; opacity:0; transition:opacity .3s; z-index:50; max-width:320px;}
+.toast.show{opacity:1;}
+footer{text-align:center; color:#6f6b5e; font-size:11px; padding:10px 0 40px;}
+footer img{height:16px; opacity:.8; display:block; margin:0 auto 8px;}
+
+@media (max-width:720px){
+  .hd-title{font-size:23px;}
+  section{padding:18px 14px;}
+  .g-row{grid-template-columns:130px 1fr;}
+  .g-head{grid-template-columns:130px 1fr;}
+  .g-lab{font-size:11px;}
+  table,thead,tbody,tr{display:block;}
+  thead{display:none;}
+  td{display:flex; justify-content:space-between; gap:10px; border-bottom:none; padding:4px 8px;}
+  td::before{content:attr(data-l); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--copper); font-weight:500; padding-top:4px;}
+  tr{border-bottom:1px solid var(--linen); padding:8px 0;}
+}
+@media print{
+  body{background:var(--white); font-size:11px;}
+  header{background:var(--white) !important; color:var(--cast-iron); border-bottom:2px solid var(--green); -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .hd-sub{color:#6f6b5e;}
+  #logoImg{content:url("https://jpiqmeiwuygzzfoejrvr.supabase.co/storage/v1/object/public/project-docs/brand/logo_dark.png");}
+  .hd-actions,.addbar,.n-form,.q-status,select,input,button,.refresh-note{display:none !important;}
+  section{border:none; padding:8px 0; break-inside:avoid;}
+  .g-bar{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  a{color:var(--cast-iron); text-decoration:none;}
+  .next-action{background:var(--offwhite); color:var(--cast-iron); -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd-inner">
+    <div class="hd-left">
+      <img id="logoImg" src="https://jpiqmeiwuygzzfoejrvr.supabase.co/storage/v1/object/public/project-docs/brand/logo_white.png" alt="Appellation">
+      <div>
+        <div class="hd-title">Honmono Project Dashboard</div>
+        <div class="hd-sub label" style="letter-spacing:.18em;">320 Center Street, Healdsburg &middot; Charlie Palmer Collective</div>
+      </div>
+    </div>
+    <div class="hd-actions">
+      <button class="btn" onclick="loadAll()">Refresh</button>
+      <button class="btn" onclick="window.print()">Print</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="overview">
+    <h2>Project overview</h2>
+    <div class="sec-sub">A 12-seat omakase concept for downtown Healdsburg, in partnership with Chef Willer Larreal.</div>
+    <div class="ov-grid">
+      <div class="ov-card"><span class="label">Site</span><p><strong>320 Center Street, Healdsburg, CA</strong><br>1,354 sq ft indoors + 334 sq ft parklet<br>Owners: Amber Caska and Dave Cadenhead</p></div>
+      <div class="ov-card"><span class="label">Prior site (paused)</span><p>109A Plaza Street, Healdsburg<br>LOI executed June 25; on hold pending 320 Center terms</p></div>
+      <div class="ov-card"><span class="label">Current phase</span><p id="ovPhase">Feasibility and LOI negotiation</p></div>
+      <div class="ov-card"><span class="label">Key dates</span><p>One-Stop application due <strong>July 8</strong><br>One-Stop meeting <strong>July 16</strong><br>Signing window ends July 26 (inferred)</p></div>
+    </div>
+    <div class="next-action">
+      <span class="label">Next critical action</span>
+      <strong id="nextAction">Loading tasks...</strong>
+    </div>
+  </section>
+
+  <section id="gantt-sec">
+    <h2>Timeline</h2>
+    <div class="sec-sub">Confirmed milestones only. Dashed outline marks dates inferred from stated rules rather than stated outright.</div>
+    <div class="gantt" id="gantt"></div>
+    <div class="g-legend">
+      <span><i class="sw" style="background:var(--green)"></i> Done</span>
+      <span><i class="sw" style="background:var(--mustard)"></i> In motion</span>
+      <span><i class="sw" style="background:var(--linen); border:1px solid var(--green)"></i> Upcoming</span>
+      <span><i class="sw" style="background:var(--copper)"></i> At risk</span>
+      <span><i class="sw" style="outline:2px dashed var(--copper); outline-offset:1px;"></i> Inferred or target date</span>
+      <span><i class="sw" style="background:var(--copper); width:2px; height:14px;"></i> Today</span>
+    </div>
+  </section>
+
+  <section id="tasks-sec">
+    <h2>Tasks</h2>
+    <div class="sec-sub">Live from the project task system. Change a status, date, or priority here and it saves for everyone. <span class="refresh-note">Auto-refreshes every two minutes.</span></div>
+    <div id="tasks">Loading tasks...</div>
+    <div class="addbar">
+      <select id="newList"></select>
+      <input type="text" id="newName" placeholder="New task name">
+      <input type="text" id="newOwner" placeholder="Owner" style="max-width:130px;">
+      <input type="date" id="newDue">
+      <select id="newPriority"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select>
+      <button class="btn btn-dark" onclick="createTask()">Add task</button>
+    </div>
+  </section>
+
+  <section id="docs-sec">
+    <h2>Document library</h2>
+    <div class="sec-sub">Click a document name to open or download it.</div>
+    <table id="docs">
+      <thead><tr><th>Document</th><th>Type</th><th>Date</th><th>Source</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="q-sec">
+    <h2>Open questions</h2>
+    <div class="sec-sub">Click a status to cycle it. Click a question to record the answer.</div>
+    <div id="questions"></div>
+    <div class="addbar">
+      <input type="text" id="newQ" placeholder="New question">
+      <input type="text" id="newQOwner" placeholder="Who answers it" style="max-width:170px;">
+      <button class="btn btn-dark" onclick="addQuestion()">Add question</button>
+    </div>
+  </section>
+
+  <section id="c-sec">
+    <h2>Contacts</h2>
+    <div class="c-grid" id="contacts"></div>
+  </section>
+
+  <section id="n-sec">
+    <h2>Meeting notes</h2>
+    <div id="notes"></div>
+    <div class="n-form">
+      <div class="row2">
+        <input type="date" id="nnDate">
+        <input type="text" id="nnTitle" placeholder="Meeting title">
+        <input type="text" id="nnAtt" placeholder="Attendees">
+      </div>
+      <textarea id="nnNotes" rows="3" placeholder="Notes"></textarea>
+      <div><button class="btn btn-dark" onclick="addNote()">Save note</button></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <img src="https://jpiqmeiwuygzzfoejrvr.supabase.co/storage/v1/object/public/project-docs/brand/logo_dark.png" alt="Appellation">
+  Honmono Project Dashboard &middot; Charlie Palmer Collective &middot; Confidential
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA = "https://jpiqmeiwuygzzfoejrvr.supabase.co";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwaXFtZWl3dXlnenpmb2VqcnZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMjEwNDYsImV4cCI6MjA5ODc5NzA0Nn0.lMFY4D2ozLTPhmxyJ-928omngE_a_S7aOPEy38Gn_ok";
+const HEADERS = {"apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json"};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtD = d => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "";
+let META = null;
+
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2600); }
+async function sb(path, opts={}){
+  const r = await fetch(SUPA + "/rest/v1/" + path, {headers:{...HEADERS, ...(opts.headers||{})}, ...opts});
+  if(!r.ok){ toast("Save failed: " + r.status); throw new Error(await r.text()); }
+  const tx = await r.text(); return tx ? JSON.parse(tx) : null;
+}
+async function fx(qs, body){
+  const r = await fetch(SUPA + "/functions/v1/clickup" + (qs||""), body ? {method:"POST", headers:HEADERS, body:JSON.stringify(body)} : {headers:HEADERS});
+  const j = await r.json();
+  if(!r.ok || j.error){ toast("Task system error"); throw new Error(j.error||r.status); }
+  return j;
+}
+
+/* ---------- Gantt ---------- */
+function renderGantt(ms){
+  const el = document.getElementById("gantt");
+  if(!ms.length){ el.innerHTML = "<p>No milestones yet.</p>"; return; }
+  const min = new Date(Math.min(...ms.map(m=>+new Date(m.start_date))) - 2*864e5);
+  const max = new Date(Math.max(...ms.map(m=>+new Date(m.end_date))) + 5*864e5);
+  const span = max - min;
+  const pct = d => ((+new Date(d + "T12:00:00") - min) / span * 100);
+  let ticks = "";
+  for(let t = new Date(min); t <= max; t = new Date(+t + 864e5)){
+    if(t.getDay() === 1){ ticks += `<span class="g-tick" style="left:${((t-min)/span*100).toFixed(2)}%">${t.toLocaleDateString("en-US",{month:"short",day:"numeric"})}</span>`; }
+  }
+  const today = new Date(); today.setHours(12,0,0,0);
+  const todayPct = ((today - min) / span * 100);
+  let rows = `<div class="g-head"><div></div><div class="g-scale">${ticks}</div></div>`;
+  ms.forEach(m=>{
+    const l = pct(m.start_date), r = pct(m.end_date);
+    const w = Math.max(r - l, 1.4);
+    const inf = (m.kind === "inferred" || m.kind === "target") ? " g-inferred" : "";
+    const tline = (todayPct >= 0 && todayPct <= 100) ? `<div class="g-today" style="left:${todayPct.toFixed(2)}%"></div>` : "";
+    rows += `<div class="g-row"><div class="g-lab"><span class="ws">${esc(m.workstream)}</span>${esc(m.title)}</div>
+      <div class="g-track">${tline}<div class="g-bar g-${esc(m.status)}${inf}" style="left:${l.toFixed(2)}%; width:${w.toFixed(2)}%" title="${esc(m.title)}: ${fmtD(m.start_date)}${m.start_date!==m.end_date ? " to " + fmtD(m.end_date):""}${m.detail ? " | " + esc(m.detail):""}"></div></div></div>`;
+  });
+  el.innerHTML = rows;
+}
+
+/* ---------- Tasks ---------- */
+function taskRow(t){
+  const overdue = t.due_date && t.status.toLowerCase() !== "complete" && new Date(t.due_date+"T23:59:00") < new Date();
+  const doneCls = t.status.toLowerCase() === "complete" ? " class=\"done-row\"" : "";
+  const opts = (META?.lists.find(l=>l.name===t.list)?.statuses || [{status:t.status}])
+    .map(s=>`<option value="${esc(s.status)}"${s.status===t.status?" selected":""}>${esc(s.status)}</option>`).join("");
+  return `<tr${doneCls}>
+    <td data-l="Task"><a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.name)}</a></td>
+    <td data-l="Owner">${esc(t.owner)}</td>
+    <td data-l="Priority"><span class="chip p-${esc(t.priority)}">${esc(t.priority)}</span></td>
+    <td data-l="Due"><input type="date" value="${t.due_date||""}" onchange="updTask('${t.id}',{due_date:this.value})"> ${overdue?'<span class="overdue">overdue</span>':''}</td>
+    <td data-l="Status"><select onchange="updTask('${t.id}',{status:this.value})">${opts}</select></td>
+  </tr>`;
+}
+function renderTasks(data){
+  const groups = {};
+  data.tasks.forEach(t=>{ (groups[t.list] = groups[t.list] || []).push(t); });
+  const order = ["LOI & Deal","Design & Feasibility","Permitting & One-Stop","Capital & Partners"];
+  let html = "";
+  order.filter(g=>groups[g]).forEach(g=>{
+    const rows = groups[g].sort((a,b)=>(a.due_date||"9999") < (b.due_date||"9999") ? -1 : 1).map(taskRow).join("");
+    html += `<div class="t-group"><h3>${esc(g)}</h3><table><thead><tr><th>Task</th><th>Owner</th><th>Priority</th><th>Due</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  document.getElementById("tasks").innerHTML = html || "<p>No tasks.</p>";
+  const open = data.tasks.filter(t=>t.status.toLowerCase() !== "complete" && t.due_date);
+  const pRank = {urgent:0, high:1, normal:2, low:3};
+  open.sort((a,b)=> a.due_date === b.due_date ? pRank[a.priority]-pRank[b.priority] : (a.due_date < b.due_date ? -1 : 1));
+  document.getElementById("nextAction").textContent = open.length
+    ? `${open[0].name} (${open[0].owner || "unassigned"}, due ${fmtD(open[0].due_date)})`
+    : "All tracked tasks complete";
+  const sel = document.getElementById("newList");
+  if(META && !sel.options.length){ META.lists.forEach(l=>{ sel.insertAdjacentHTML("beforeend", `<option value="${l.id}">${esc(l.name)}</option>`); }); }
+}
+async function updTask(id, patch){ await fx(null, {action:"update", task_id:id, ...patch}); toast("Saved to task system"); loadTasks(); }
+async function createTask(){
+  const name = document.getElementById("newName").value.trim();
+  if(!name) return toast("Task needs a name");
+  await fx(null, {action:"create", list_id:document.getElementById("newList").value, name,
+    owner:document.getElementById("newOwner").value.trim(), due_date:document.getElementById("newDue").value || null,
+    priority:document.getElementById("newPriority").value});
+  document.getElementById("newName").value = ""; document.getElementById("newOwner").value = "";
+  toast("Task created"); loadTasks();
+}
+async function loadTasks(){
+  try{
+    if(!META) META = await fx("?action=meta");
+    renderTasks(await fx("?action=tasks"));
+  }catch(e){ document.getElementById("tasks").innerHTML = "<p>Task system unavailable right now. Refresh to retry.</p>"; }
+}
+
+/* ---------- Documents ---------- */
+function renderDocs(rows){
+  document.querySelector("#docs tbody").innerHTML = rows.map(d=>`<tr>
+    <td data-l="Document" class="doc-name"><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a></td>
+    <td data-l="Type"><span class="tag">${esc(d.doc_type)}</span></td>
+    <td data-l="Date">${fmtD(d.doc_date)}</td>
+    <td data-l="Source">${esc(d.source||"")}</td></tr>`).join("");
+}
+
+/* ---------- Questions ---------- */
+const Q_CYCLE = {open:"answered", answered:"parked", parked:"open"};
+function renderQuestions(rows){
+  document.getElementById("questions").innerHTML = rows.map(q=>`
+    <div class="q-item q-${esc(q.status)}" id="q-${esc(q.id)}">
+      <div class="q-body" onclick="editAnswer('${esc(q.id)}')" style="cursor:pointer;">
+        ${esc(q.question)}
+        <div class="q-meta">Raised by ${esc(q.raised_by||"team")} &middot; Answer owner: ${esc(q.owner||"TBD")}</div>
+        ${q.answer ? `<div class="q-answer">${esc(q.answer)}</div>` : ""}
+        <div class="q-editbox"></div>
+      </div>
+      <button class="q-status" onclick="cycleQ('${esc(q.id)}','${esc(q.status)}')">${esc(q.status)}</button>
+    </div>`).join("");
+}
+async function cycleQ(id, cur){
+  await sb(`open_questions?id=eq.${encodeURIComponent(id)}`, {method:"PATCH", body:JSON.stringify({status:Q_CYCLE[cur]||"open"})});
+  toast("Status updated"); loadQuestions();
+}
+function editAnswer(id){
+  const box = document.querySelector(`#q-${CSS.escape(id)} .q-editbox`);
+  if(box.innerHTML) { box.innerHTML=""; return; }
+  box.innerHTML = `<textarea class="q-edit" rows="2" placeholder="Record the answer"></textarea>
+    <button class="btn btn-dark" style="margin-top:6px" onclick="event.stopPropagation(); saveAnswer('${esc(id)}', this.previousElementSibling.value)">Save answer</button>`;
+  box.querySelector("textarea").addEventListener("click", e=>e.stopPropagation());
+}
+async function saveAnswer(id, val){
+  await sb(`open_questions?id=eq.${encodeURIComponent(id)}`, {method:"PATCH", body:JSON.stringify({answer:val, status:"answered"})});
+  toast("Answer saved"); loadQuestions();
+}
+async function addQuestion(){
+  const q = document.getElementById("newQ").value.trim();
+  if(!q) return toast("Type the question first");
+  await sb("open_questions", {method:"POST", body:JSON.stringify({id:"q" + Date.now(), question:q, owner:document.getElementById("newQOwner").value.trim()||null, raised_by:"Dashboard"})});
+  document.getElementById("newQ").value=""; document.getElementById("newQOwner").value="";
+  toast("Question added"); loadQuestions();
+}
+async function loadQuestions(){ renderQuestions(await sb("open_questions?select=*&order=status.desc,created_at")); }
+
+/* ---------- Contacts ---------- */
+function renderContacts(rows){
+  document.getElementById("contacts").innerHTML = rows.map(c=>`<div class="c-card">
+    <div class="name">${esc(c.name)}</div>
+    <div class="role">${esc(c.role||"")}</div>
+    <p>${esc(c.org||"")}</p>
+    ${c.email ? `<p><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>` : ""}
+    ${c.phone ? `<p>${esc(c.phone)}</p>` : ""}
+    ${c.notes ? `<p style="color:#6f6b5e; margin-top:4px;">${esc(c.notes)}</p>` : ""}
+  </div>`).join("");
+}
+
+/* ---------- Notes ---------- */
+function renderNotes(rows){
+  document.getElementById("notes").innerHTML = rows.map(n=>`<div class="n-item">
+    <div class="nd">${new Date(n.meeting_date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div>
+    <h4>${esc(n.title)}</h4>
+    <div class="att">${esc(n.attendees||"")}</div>
+    <p>${esc(n.notes||"")}</p>
+  </div>`).join("");
+}
+async function addNote(){
+  const d = document.getElementById("nnDate").value, t = document.getElementById("nnTitle").value.trim();
+  if(!d || !t) return toast("Date and title are required");
+  await sb("meeting_notes", {method:"POST", body:JSON.stringify({id:"n"+Date.now(), meeting_date:d, title:t,
+    attendees:document.getElementById("nnAtt").value.trim(), notes:document.getElementById("nnNotes").value.trim()})});
+  ["nnTitle","nnAtt","nnNotes"].forEach(i=>document.getElementById(i).value="");
+  toast("Note saved"); loadNotes();
+}
+async function loadNotes(){ renderNotes(await sb("meeting_notes?select=*&order=meeting_date.desc")); }
+
+/* ---------- Boot ---------- */
+async function loadAll(){
+  loadTasks();
+  sb("milestones?select=*&order=sort").then(renderGantt);
+  sb("documents?select=*&order=sort").then(renderDocs);
+  loadQuestions();
+  sb("contacts?select=*&order=sort").then(renderContacts);
+  loadNotes();
+}
+loadAll();
+setInterval(loadTasks, 120000);
+</script>
+</body>
+</html>
