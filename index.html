@@ -504,7 +504,9 @@ async function loadTasks(){
 }
 
 /* ---------- Documents ---------- */
+function dealVisible(){ return PROFILE?.sections?.lists?.["LOI & Deal"] !== false; }
 function renderDocs(rows){
+  rows = rows.filter(d => !d.restricted || dealVisible());
   document.querySelector("#docs tbody").innerHTML = rows.map(d=>`<tr>
     <td data-l="Document" class="doc-name"><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a></td>
     <td data-l="Type"><span class="tag">${esc(d.doc_type)}</span></td>
@@ -515,6 +517,7 @@ function renderDocs(rows){
 /* ---------- Questions ---------- */
 const Q_CYCLE = {open:"answered", answered:"parked", parked:"open"};
 function renderQuestions(rows){
+  rows = rows.filter(q => !q.restricted || dealVisible());
   window._questions = Object.fromEntries(rows.map(q=>[q.id, q]));
   document.getElementById("questions").innerHTML = rows.map(q=>`
     <div class="q-item q-${esc(q.status)}" id="q-${esc(q.id)}">
