@@ -14,6 +14,7 @@ Shared project management dashboard for the Honmono omakase project (320 Center 
 - Data corrections: Supabase Dashboard, Table Editor.
 - Task changes: use the dashboard, or ClickUp directly if preferred; both stay in sync because ClickUp is the system of record.
 - The Supabase anon key embedded in `index.html` is publishable by design. The ClickUp token is not in this repo and must never be added to it.
+- Note: GitHub Pages caches pages for up to 10 minutes; static HTML changes can lag a browser reload by that long.
 
 ## Admin
 
