@@ -167,8 +167,10 @@ select:focus,input:focus,textarea:focus{outline:1px solid var(--gold);}
 .danger{border-color:var(--verm); color:var(--verm);}
 .sec-note{font-size:11.5px; color:var(--soft); margin-top:14px; line-height:1.5;}
 
-.toast{position:fixed; bottom:22px; right:22px; background:var(--ink); color:var(--paper); padding:12px 18px; font-size:13px; opacity:0; transition:opacity .3s; z-index:50; max-width:320px; border:1px solid var(--gold);}
-.toast.show{opacity:1;}
+.toast{position:fixed; bottom:22px; right:22px; background:var(--ink); color:var(--paper); padding:12px 18px; font-size:13px; opacity:0; transition:opacity .3s; z-index:50; max-width:340px; border:1px solid var(--gold); display:flex; gap:14px; align-items:center; pointer-events:none;}
+.toast.show{opacity:1; pointer-events:auto;}
+.toast .undo-btn{background:transparent; border:1px solid var(--warm-gold); color:var(--warm-gold); padding:4px 12px; font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; flex:0 0 auto;}
+.toast .undo-btn:hover{background:rgba(232,200,148,.15);}
 footer{text-align:center; color:var(--soft); font-size:11px; padding:14px 0 44px;}
 footer img{height:20px; opacity:.85; display:block; margin:0 auto 10px;}
 
@@ -360,7 +362,22 @@ const SECTION_IDS = {overview:"overview", snapshot:"snapshot", timeline:"timelin
 const NAV_LABELS = {overview:"Overview", snapshot:"Next steps", timeline:"Timeline", tasks:"Tasks", docs:"Documents", questions:"Questions", contacts:"Contacts", notes:"Notes"};
 const ALL_LISTS = ["LOI & Deal","Design & Feasibility","Permitting & One-Stop","Capital & Partners"];
 
-function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2600); }
+let _toastTimer = null;
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(_toastTimer); _toastTimer = setTimeout(()=>t.classList.remove("show"),2600); }
+window._undoFn = null;
+function toastUndo(m, fn){
+  const t = document.getElementById("toast");
+  window._undoFn = fn;
+  t.innerHTML = `<span>${esc(m)}</span><button class="undo-btn" onclick="runUndo()">Undo</button>`;
+  t.classList.add("show");
+  clearTimeout(_toastTimer); _toastTimer = setTimeout(()=>t.classList.remove("show"), 7000);
+}
+async function runUndo(){
+  const fn = window._undoFn; window._undoFn = null;
+  document.getElementById("toast").classList.remove("show");
+  if(!fn) return;
+  try{ await fn(); toast("Undone"); }catch(e){ toast("Undo failed"); }
+}
 async function sb(path, opts={}){
   const r = await fetch(SUPA + "/rest/v1/" + path, {headers:{...HEADERS, ...(opts.headers||{})}, ...opts});
   if(!r.ok){ toast("Save failed: " + r.status); throw new Error(await r.text()); }
@@ -433,6 +450,7 @@ function taskRow(t){
   </tr>`;
 }
 function renderTasks(data){
+  window._tasks = Object.fromEntries(data.tasks.map(t=>[t.id, t]));
   const groups = {};
   data.tasks.forEach(t=>{ (groups[t.list] = groups[t.list] || []).push(t); });
   if(PROFILE?.sections?.tasks !== false){
@@ -457,7 +475,14 @@ function renderTasks(data){
   const sel = document.getElementById("newList");
   if(META && !sel.options.length){ META.lists.forEach(l=>{ sel.insertAdjacentHTML("beforeend", `<option value="${l.id}">${esc(l.name)}</option>`); }); }
 }
-async function updTask(id, patch){ await fx(null, {action:"update", task_id:id, ...patch}); toast("Saved to task system"); loadTasks(); }
+async function updTask(id, patch){
+  const prev = window._tasks?.[id];
+  const revert = prev ? Object.fromEntries(Object.keys(patch).map(k=>[k, prev[k] ?? null])) : null;
+  await fx(null, {action:"update", task_id:id, ...patch});
+  if(revert){ toastUndo("Saved to task system", async ()=>{ await fx(null, {action:"update", task_id:id, ...revert}); loadTasks(); }); }
+  else{ toast("Saved to task system"); }
+  loadTasks();
+}
 async function createTask(){
   const name = document.getElementById("newName").value.trim();
   if(!name) return toast("Task needs a name");
@@ -488,6 +513,7 @@ function renderDocs(rows){
 /* ---------- Questions ---------- */
 const Q_CYCLE = {open:"answered", answered:"parked", parked:"open"};
 function renderQuestions(rows){
+  window._questions = Object.fromEntries(rows.map(q=>[q.id, q]));
   document.getElementById("questions").innerHTML = rows.map(q=>`
     <div class="q-item q-${esc(q.status)}" id="q-${esc(q.id)}">
       <div class="q-body" onclick="editAnswer('${esc(q.id)}')" style="cursor:pointer;">
@@ -501,7 +527,11 @@ function renderQuestions(rows){
 }
 async function cycleQ(id, cur){
   await sb(`open_questions?id=eq.${encodeURIComponent(id)}`, {method:"PATCH", body:JSON.stringify({status:Q_CYCLE[cur]||"open"})});
-  toast("Status updated"); loadQuestions();
+  toastUndo("Status updated", async ()=>{
+    await sb(`open_questions?id=eq.${encodeURIComponent(id)}`, {method:"PATCH", body:JSON.stringify({status:cur})});
+    loadQuestions();
+  });
+  loadQuestions();
 }
 function editAnswer(id){
   const box = document.querySelector(`#q-${CSS.escape(id)} .q-editbox`);
@@ -511,8 +541,15 @@ function editAnswer(id){
   box.querySelector("textarea").addEventListener("click", e=>e.stopPropagation());
 }
 async function saveAnswer(id, val){
+  const prev = window._questions?.[id];
   await sb(`open_questions?id=eq.${encodeURIComponent(id)}`, {method:"PATCH", body:JSON.stringify({answer:val, status:"answered"})});
-  toast("Answer saved"); loadQuestions();
+  if(prev){
+    toastUndo("Answer saved", async ()=>{
+      await sb(`open_questions?id=eq.${encodeURIComponent(id)}`, {method:"PATCH", body:JSON.stringify({answer:prev.answer, status:prev.status})});
+      loadQuestions();
+    });
+  } else { toast("Answer saved"); }
+  loadQuestions();
 }
 async function addQuestion(){
   const q = document.getElementById("newQ").value.trim();
