@@ -367,8 +367,9 @@ async function sb(path, opts={}){
   const tx = await r.text(); return tx ? JSON.parse(tx) : null;
 }
 async function fx(qs, body){
-  const sep = qs && qs.includes("?") ? "&" : "?";
-  const url = SUPA + "/functions/v1/clickup" + (qs||"?action=tasks") + sep + "key=" + encodeURIComponent(KEY);
+  let url = SUPA + "/functions/v1/clickup";
+  if(qs){ url += qs + (qs.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(KEY); }
+  else { url += "?key=" + encodeURIComponent(KEY); }
   const r = await fetch(url, body ? {method:"POST", headers:HEADERS, body:JSON.stringify({...body, key:KEY})} : {headers:HEADERS});
   const j = await r.json();
   if(!r.ok || j.error){ toast(j.error === "not permitted" ? "Your access level does not allow that" : "Task system error"); throw new Error(j.error||r.status); }
